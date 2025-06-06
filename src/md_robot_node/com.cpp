@@ -40,10 +40,10 @@ int InitSerialComm(const std::string& port_name, int baud_rate)
         drivers::serial_driver::Parity::NONE,
         drivers::serial_driver::StopBits::ONE);
 
-    ser_port = std::make_unique<drivers::serial_driver::SerialPort>(*owned_ctx);
+    // SerialPort 생성자가 3개의 인자를 받도록 수정
     try {
-        ser_port->open(port_name);
-        ser_port->set_config(port_config);
+        ser_port = std::make_unique<drivers::serial_driver::SerialPort>(*owned_ctx, port_name, port_config);
+        ser_port->open();
     } catch (const std::exception & e) {
         RCLCPP_ERROR(logger, "Unable to open port: %s", e.what());
         return -1;
