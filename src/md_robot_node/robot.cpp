@@ -1,7 +1,7 @@
 #include "md_robot_node/robot.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "md/msg/MdRobotMsg1.hpp"
-#include "md/msg/MdRobotMsg2.hpp"
+#include "md/msg/md_robot_msg1.hpp"
+#include "md/msg/md_robot_msg2.hpp"
 #include "md_robot_node/global.hpp"
 #include <algorithm>
 
