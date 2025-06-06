@@ -26,6 +26,7 @@ set(msg_files
 )
 
 # ROS2 인터페이스(메시지)를 생성합니다.
+# 이 함수는 ${PROJECT_NAME}__rosidl_typesupport_cpp 라는 라이브러리 타겟을 생성합니다.
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   DEPENDENCIES
@@ -44,13 +45,7 @@ add_executable(md_robot_node
   src/md_robot_node/robot.cpp
 )
 
-# =================================================================
-#               !!! 최종 해결책 !!!
-# =================================================================
-# 실행 파일이 의존하는 패키지 목록에
-# 패키지 자기 자신(${PROJECT_NAME})을 추가합니다.
-# 이것이 이 패키지 내부의 메시지/서비스에 대한 의존성을
-# 해결하는 ament_cmake 표준 방식입니다.
+# ament_target_dependencies는 외부 패키지와의 의존성을 설정합니다.
 ament_target_dependencies(md_robot_node
   rclcpp
   rclpy
@@ -60,7 +55,15 @@ ament_target_dependencies(md_robot_node
   geometry_msgs
   tf2_ros
   serial_driver
-  ${PROJECT_NAME}  # <-- 핵심 수정 사항
+)
+
+# =================================================================
+#               !!! 최종 해결책 !!!
+# =================================================================
+# 실행 파일을 메시지로부터 생성된 실제 라이브러리 타겟에 직접 링크합니다.
+# 이 방법이 빌드 순서와 헤더 경로 문제를 모두 해결합니다.
+target_link_libraries(md_robot_node
+  ${PROJECT_NAME}__rosidl_typesupport_cpp
 )
 # =================================================================
 
