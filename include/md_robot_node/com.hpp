@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #define ID_ALL 0xfe
 #define MAX_PACKET_SIZE 128

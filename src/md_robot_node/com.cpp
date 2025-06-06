@@ -1,7 +1,8 @@
 #include "md_robot_node/com.hpp"
 #include "md_robot_node/main.hpp" // MdRobotNode 클래스 선언을 포함
 #include "md_robot_node/robot.hpp"
-#include "serial_driver/serial_driver.hpp"
+#include "serial_driver/serial_driver.hpp" // API 사용을 위해 포함
+#include "serial_driver/serial_port.hpp"   // API 사용을 위해 포함
 #include <vector>
 #include <string>
 #include <memory>

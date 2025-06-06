@@ -7,6 +7,7 @@
 #include "md/msg/md_robot_msg1.hpp"
 #include "md/msg/md_robot_msg2.hpp"
 #include "md_robot_node/global.hpp"
+#include "md_robot_node/com.hpp"
 
 // MdRobotNode 클래스 선언
 class MdRobotNode : public rclcpp::Node
