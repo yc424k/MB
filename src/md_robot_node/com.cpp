@@ -27,9 +27,7 @@ uint8_t serial_comm_snd_buff[MAX_PACKET_SIZE];
 
 int InitSerialComm(const std::string& port_name, int baud_rate)
 {
-    if (!g_node_ptr) {
-        return -1;
-    }
+    if (!g_node_ptr) return -1;
     auto logger = g_node_ptr->get_logger();
     RCLCPP_INFO(logger, "Serial port: %s, Baudrate: %d", port_name.c_str(), baud_rate);
 
@@ -40,7 +38,6 @@ int InitSerialComm(const std::string& port_name, int baud_rate)
         drivers::serial_driver::Parity::NONE,
         drivers::serial_driver::StopBits::ONE);
 
-    // SerialPort 생성자가 3개의 인자를 받도록 수정
     try {
         ser_port = std::make_unique<drivers::serial_driver::SerialPort>(*owned_ctx, port_name, port_config);
         ser_port->open();
@@ -61,7 +58,8 @@ uint8_t CalCheckSum(uint8_t *pData, uint16_t length)
     return (uint8_t)sum;
 }
 
-int PutMdData(uint8_t pid, uint8_t rmid, const uint8_t *pData, uint16_t length) {
+// rmid의 타입을 uint16_t로 수정합니다.
+int PutMdData(uint8_t pid, uint16_t rmid, const uint8_t *pData, uint16_t length) {
     if (!g_node_ptr || !ser_port) return -1;
     
     if (ser_port->is_open()) {
@@ -142,15 +140,11 @@ int MdReceiveProc()
 
 int AnalyzeReceivedData(const std::vector<uint8_t>& buffer) { 
     if(!g_node_ptr) return 0;
-
     static uint32_t rcv_step = 0, byPacketNum = 0;
     static uint8_t byChkSum = 0;
     static uint16_t byMaxDataNum = 0, byDataNum = 0;
-    
-    for (uint8_t data : buffer)
-    {
-        switch(rcv_step)
-        {
+    for (uint8_t data : buffer) {
+        switch(rcv_step) {
             case 0:
                 if(data == g_node_ptr->robotParamData.nIDPC) {
                     byPacketNum = 0; byChkSum = data; serial_comm_rcv_buff[byPacketNum++] = data; rcv_step++;
