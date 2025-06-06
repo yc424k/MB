@@ -4,8 +4,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "md/msg/MdRobotMsg1.hpp"
-#include "md/msg/MdRobotMsg2.hpp"
+#include "md/msg/md_robot_msg1.hpp"
+#include "md/msg/md_robot_msg2.hpp"
 #include "md_robot_node/global.hpp"
 
 // MdRobotNode 클래스 선언
