@@ -2,9 +2,9 @@
 
 #include <cstdint>
 #include "rclcpp/rclcpp.hpp"
-#include "md/msg/md_robot_msg1.hpp"
-#include "md/msg/md_robot_msg2.hpp"
-#include "md/msg/robot_pose.hpp"
+#include "md/msg/MdRobotMsg1.hpp"
+#include "md/msg/MdRobotMsg2.hpp"
+#include "md/msg/RobotPose.hpp"
 #include "md_robot_node/global.hpp"
 
 // robot.cpp에 정의된 함수들의 원형(선언)
