@@ -57,30 +57,22 @@ ament_target_dependencies(md_robot_node
   serial_driver
 )
 
-# =================================================================
-#               !!! 최종 해결책 !!!
-# =================================================================
 # 실행 파일을 메시지로부터 생성된 실제 라이브러리 타겟에 직접 링크합니다.
-# 이 방법이 빌드 순서와 헤더 경로 문제를 모두 해결합니다.
+# 이 방법이 빌드 순서와 헤더 경로 문제를 모두 해결하는 최종 해결책입니다.
 target_link_libraries(md_robot_node
   ${PROJECT_NAME}__rosidl_typesupport_cpp
 )
-# =================================================================
 
 # 설치(install) 규칙을 정의합니다.
 install(TARGETS md_robot_node
   DESTINATION lib/${PROJECT_NAME}
 )
-
 install(DIRECTORY include/
   DESTINATION include
 )
-
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
-
-# package.xml 파일 설치
 install(FILES package.xml
   DESTINATION share/${PROJECT_NAME}
 )
