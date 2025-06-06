@@ -22,7 +22,7 @@ def generate_launch_description():
             {'serial_baudrate': 57600},
             {'wheel_radius': 0.0935},
             {'wheel_length': 0.454},
-            {'reduction': 30},
+            {'reduction': 30.0},
             {'reverse_direction': 0},
             {'maxrpm': 1000},
             {'enable_encoder': 0},
