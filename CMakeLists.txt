@@ -14,7 +14,9 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(rclpy REQUIRED) # 원본에 rospy가 있어 추가
+find_package(rclpy REQUIRED)
+find_package(std_srvs REQUIRED)
+
 
 # 'serial' 패키지는 ros-humble-serial-driver 또는 유사 패키지를 설치해야 합니다.
 # sudo apt-get install ros-humble-serial-driver
