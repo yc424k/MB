@@ -44,7 +44,13 @@ add_executable(md_robot_node
   src/md_robot_node/robot.cpp
 )
 
-# ament_target_dependencies는 외부 패키지와의 의존성을 설정합니다.
+# =================================================================
+#               !!! 최종 해결책 !!!
+# =================================================================
+# 실행 파일이 의존하는 패키지 목록에
+# 패키지 자기 자신(${PROJECT_NAME})을 추가합니다.
+# 이것이 이 패키지 내부의 메시지/서비스에 대한 의존성을
+# 해결하는 ament_cmake 표준 방식입니다.
 ament_target_dependencies(md_robot_node
   rclcpp
   rclpy
@@ -54,16 +60,7 @@ ament_target_dependencies(md_robot_node
   geometry_msgs
   tf2_ros
   serial_driver
-)
-
-# =================================================================
-#               !!! 최종 해결책 !!!
-# =================================================================
-# target_link_libraries 대신 add_dependencies를 사용하여
-# 실행 파일(md_robot_node)이 메시지 생성 작업(${PROJECT_NAME}__cpp)에
-# 의존하도록 빌드 순서만 지정합니다.
-add_dependencies(md_robot_node
-  ${PROJECT_NAME}__cpp
+  ${PROJECT_NAME}  # <-- 핵심 수정 사항
 )
 # =================================================================
 
