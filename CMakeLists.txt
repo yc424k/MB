@@ -57,10 +57,12 @@ ament_target_dependencies(md_robot_node
 )
 
 # =================================================================
-#               !!! 가장 중요한 수정 사항 !!!
+#               !!! 최종 해결책 !!!
 # =================================================================
-# PRIVATE 키워드를 삭제하여 '일반(Plain) 방식'으로 문법을 통일합니다.
-target_link_libraries(md_robot_node
+# target_link_libraries 대신 add_dependencies를 사용하여
+# 실행 파일(md_robot_node)이 메시지 생성 작업(${PROJECT_NAME}__cpp)에
+# 의존하도록 빌드 순서만 지정합니다.
+add_dependencies(md_robot_node
   ${PROJECT_NAME}__cpp
 )
 # =================================================================
