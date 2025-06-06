@@ -54,12 +54,15 @@ add_executable(md_robot_node
 # ROS2에서는 ament_target_dependencies를 사용하여 의존성을 명확하게 지정합니다.
 ament_target_dependencies(md_robot_node
   rclcpp
+  rclpy
   std_msgs
+  std_srvs
   sensor_msgs
   geometry_msgs
   tf2_ros
-  rclpy
   serial_driver
+  # 이 줄을 추가하여 메시지 생성에 대한 의존성을 명시합니다.
+  rosidl_interface_packages 
 )
 
 # 설치(install) 규칙을 정의합니다.
