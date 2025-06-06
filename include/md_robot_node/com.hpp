@@ -207,7 +207,7 @@ typedef struct {
     double wheel_radius;
     double nWheelLength;
     int nRMID;
-    int nGearRatio;
+    double nGearRatio;
     int reverse_direction;
     int enable_encoder;
     int encoder_PPR;
