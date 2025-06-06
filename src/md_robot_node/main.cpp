@@ -97,7 +97,7 @@ void MdRobotNode::print_parameters() {
     RCLCPP_INFO(this->get_logger(), "Diameter(mm)            : %d", this->robotParamData.nDiameter);
     RCLCPP_INFO(this->get_logger(), "Wheel Radius(m)         : %f", this->robotParamData.wheel_radius);
     RCLCPP_INFO(this->get_logger(), "WheelLength(m)          : %f", this->robotParamData.nWheelLength);
-    RCLCPP_INFO(this->get_logger(), "Reduction rate          : %d", this->robotParamData.nGearRatio);
+    RCLCPP_INFO(this->get_logger(), "Reduction rate          : %f", this->robotParamData.nGearRatio);
     RCLCPP_INFO(this->get_logger(), "Max RPM                 : %d", this->robotParamData.nMaxRPM);
     if (this->robotParamData.reverse_direction == 0) {
         RCLCPP_INFO(this->get_logger(), "Robot direction         : Forward");
