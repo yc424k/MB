@@ -1,8 +1,7 @@
 #include "md_robot_node/com.hpp"
 #include "md_robot_node/main.hpp"
 #include "md_robot_node/robot.hpp"
-#include "serial_driver/serial_driver.hpp"
-#include "serial_driver/serial_port.hpp" // SerialPortConfig를 위해 필요
+#include "serial_driver/serial_port.hpp"
 #include <vector>
 #include <string>
 #include <memory>
@@ -20,7 +19,7 @@ uint32_t pid_response_receive_count = 0;
 
 // serial_driver 관련 객체들
 std::unique_ptr<drivers::common::IoContext> owned_ctx;
-std::unique_ptr<drivers::serial_driver::SerialDriver> ser_driver;
+std::unique_ptr<drivers::serial_driver::SerialPort> ser_port;
 
 // 통신 프로토콜용 버퍼
 uint8_t serial_comm_rcv_buff[MAX_PACKET_SIZE];
@@ -29,35 +28,27 @@ uint8_t serial_comm_snd_buff[MAX_PACKET_SIZE];
 int InitSerialComm(const std::string& port_name, int baud_rate)
 {
     if (!g_node_ptr) {
-        // 노드 포인터가 없으면 초기화 불가
         return -1;
     }
     auto logger = g_node_ptr->get_logger();
     RCLCPP_INFO(logger, "Serial port: %s, Baudrate: %d", port_name.c_str(), baud_rate);
 
-    // 1. IoContext 생성
     owned_ctx = std::make_unique<drivers::common::IoContext>(1);
     
-    // 2. SerialPortConfig 객체 생성 및 설정
-    drivers::serial_driver::SerialPortConfig port_config(
-        baud_rate,
+    drivers::serial_driver::SerialPortConfig port_config(baud_rate,
         drivers::serial_driver::FlowControl::NONE,
         drivers::serial_driver::Parity::NONE,
-        drivers::serial_driver::StopBits::ONE
-    );
+        drivers::serial_driver::StopBits::ONE);
 
-    // 3. SerialDriver 생성 및 포트 열기
-    ser_driver = std::make_unique<drivers::serial_driver::SerialDriver>(*owned_ctx);
+    ser_port = std::make_unique<drivers::serial_driver::SerialPort>(*owned_ctx);
     try {
-        ser_driver->init_port(port_name, port_config);
-        // open()은 init_port 내에서 호출되거나, 필요 시 명시적으로 호출
-        // 최신 API에서는 init_port 후 자동으로 열리는 경우가 많음
-        // ser_driver->open(); // 이 줄은 필요 없을 수 있음
+        ser_port->open(port_name);
+        ser_port->set_config(port_config);
     } catch (const std::exception & e) {
         RCLCPP_ERROR(logger, "Unable to open port: %s", e.what());
         return -1;
     }
-    return ser_driver->is_open() ? 1 : -1;
+    return ser_port->is_open() ? 1 : -1;
 }
 
 uint8_t CalCheckSum(uint8_t *pData, uint16_t length)
@@ -71,22 +62,22 @@ uint8_t CalCheckSum(uint8_t *pData, uint16_t length)
 }
 
 int PutMdData(uint8_t pid, uint8_t rmid, const uint8_t *pData, uint16_t length) {
-    if (!g_node_ptr) return -1;
+    if (!g_node_ptr || !ser_port) return -1;
     
-    uint16_t len = 0;
-    serial_comm_snd_buff[len++] = rmid;
-    serial_comm_snd_buff[len++] = g_node_ptr->robotParamData.nIDPC;
-    serial_comm_snd_buff[len++] = 1;
-    serial_comm_snd_buff[len++] = pid;
-    serial_comm_snd_buff[len++] = length;
-    memcpy(&serial_comm_snd_buff[len], pData, length);
-    len += length;
-    serial_comm_snd_buff[len++] = CalCheckSum(serial_comm_snd_buff, len);
+    if (ser_port->is_open()) {
+        uint16_t len = 0;
+        serial_comm_snd_buff[len++] = rmid;
+        serial_comm_snd_buff[len++] = g_node_ptr->robotParamData.nIDPC;
+        serial_comm_snd_buff[len++] = 1;
+        serial_comm_snd_buff[len++] = pid;
+        serial_comm_snd_buff[len++] = length;
+        memcpy(&serial_comm_snd_buff[len], pData, length);
+        len += length;
+        serial_comm_snd_buff[len++] = CalCheckSum(serial_comm_snd_buff, len);
 
-    if (ser_driver && ser_driver->is_open()) {
         try {
             std::vector<uint8_t> data_to_send(serial_comm_snd_buff, serial_comm_snd_buff + len);
-            ser_driver->send(data_to_send); // write -> send
+            ser_port->send(data_to_send);
             return 1;
         } catch (const std::exception& e) {
             RCLCPP_WARN(g_node_ptr->get_logger(), "Error writing to serial port: %s", e.what());
@@ -204,10 +195,10 @@ int AnalyzeReceivedData(const std::vector<uint8_t>& buffer) {
 }
 
 void ReceiveSerialData() {
-    if (ser_driver && ser_driver->is_open()) {
+    if (ser_port && ser_port->is_open()) {
         std::vector<uint8_t> buffer;
         try {
-            buffer = ser_driver->receive(); // read() -> receive()
+            ser_port->receive(buffer);
             if (!buffer.empty()) {
                 AnalyzeReceivedData(buffer);
             }
