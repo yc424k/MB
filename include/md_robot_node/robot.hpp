@@ -1,6 +1,8 @@
 #pragma once
 
-#include "md_robot_node/com.hpp" // ROBOT_PARAMETER_t와 같은 타입을 알기 위해 com.hpp를 먼저 포함합니다.
+// ROBOT_PARAMETER_t와 같은 타입을 알기 위해 com.hpp를 먼저 포함합니다.
+#include "md_robot_node/com.hpp" 
+
 #include "rclcpp/rclcpp.hpp"
 #include "md/msg/md_robot_msg1.hpp"
 #include "md/msg/md_robot_msg2.hpp"

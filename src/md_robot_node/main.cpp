@@ -41,9 +41,8 @@ MdRobotNode::MdRobotNode() : Node("md_robot_node"), byCntInitStep(SETTING_PARAM_
     std::string port = this->get_parameter("serial_port").as_string();
     int baudrate = this->get_parameter("serial_baudrate").as_int();
     if(InitSerialComm(port, baudrate) == -1) {
-        RCLCPP_ERROR(this->get_logger(), "Serial communication initialization failed.");
-        rclcpp::shutdown();
-        return;
+        // rclcpp::shutdown() 대신 예외를 발생시켜 프로그램을 안전하게 중단시킵니다.
+        throw std::runtime_error("Failed to initialize serial communication.");
     }
 
     // Publisher, Subscriber, Timer 생성

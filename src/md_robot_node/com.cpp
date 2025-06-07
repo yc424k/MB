@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <iostream> // fprintf를 사용하기 위해 추가
 
 // main.cpp에 정의된 전역 노드 포인터를 참조
 extern std::shared_ptr<MdRobotNode> g_node_ptr;
@@ -29,7 +30,7 @@ int InitSerialComm(const std::string& port_name, int baud_rate)
 {
     if (!g_node_ptr) return -1;
     auto logger = g_node_ptr->get_logger();
-    RCLCPP_INFO(logger, "Serial port: %s, Baudrate: %d", port_name.c_str(), baud_rate);
+    RCLCPP_INFO(logger, "Attempting to open serial port: %s at %d bps", port_name.c_str(), baud_rate);
 
     owned_ctx = std::make_unique<drivers::common::IoContext>(1);
     
@@ -38,14 +39,24 @@ int InitSerialComm(const std::string& port_name, int baud_rate)
         drivers::serial_driver::Parity::NONE,
         drivers::serial_driver::StopBits::ONE);
 
+    // open() 호출을 제거하고, 생성자에서 모든 것을 처리하도록 시도합니다.
     try {
         ser_port = std::make_unique<drivers::serial_driver::SerialPort>(*owned_ctx, port_name, port_config);
-        ser_port->open();
+        // ser_port->open(); // 이 라인을 제거합니다.
     } catch (const std::exception & e) {
-        RCLCPP_ERROR(logger, "Unable to open port: %s", e.what());
+        RCLCPP_ERROR(logger, "Failed during SerialPort object creation: %s", e.what());
         return -1;
     }
-    return ser_port->is_open() ? 1 : -1;
+
+    // 객체 생성 후, 포트가 열렸는지 바로 확인합니다.
+    if (ser_port && ser_port->is_open()) {
+        RCLCPP_INFO(logger, "Serial port opened successfully.");
+        return 1;
+    } else {
+        RCLCPP_ERROR(logger, "Serial port not open after initialization attempt.");
+        // 실패의 원인이 될 수 있는 예외를 던져서 노드를 종료시킵니다.
+        throw std::runtime_error("Failed to initialize serial communication.");
+    }
 }
 
 uint8_t CalCheckSum(uint8_t *pData, uint16_t length)
@@ -58,7 +69,6 @@ uint8_t CalCheckSum(uint8_t *pData, uint16_t length)
     return (uint8_t)sum;
 }
 
-// rmid의 타입을 uint16_t로 수정합니다.
 int PutMdData(uint8_t pid, uint16_t rmid, const uint8_t *pData, uint16_t length) {
     if (!g_node_ptr || !ser_port) return -1;
     
@@ -96,15 +106,15 @@ int MdReceiveProc()
     switch(byRcvPID)
     {
         case PID_IO_MONITOR:
-            if(byRcvDataSize == sizeof(PID_IO_MONITOR_t)) {
+            if(byRcvDataSize <= sizeof(PID_IO_MONITOR_t)) {
                 RCLCPP_DEBUG(logger, "RCV: PID_IO_MONITOR");
-                memcpy(&curr_pid_io_monitor, pRcvData, sizeof(PID_IO_MONITOR_t));
+                memcpy(&curr_pid_io_monitor, pRcvData, byRcvDataSize);
             }
             break;
         case PID_ROBOT_MONITOR2:
-            if(byRcvDataSize == sizeof(PID_ROBOT_MONITOR2_t)) {
+            if(byRcvDataSize <= sizeof(PID_ROBOT_MONITOR2_t)) {
                 RCLCPP_DEBUG(logger, "RCV: PID_ROBOT_MONITOR2");
-                memcpy(&curr_pid_robot_monitor2, pRcvData, sizeof(PID_ROBOT_MONITOR2_t));
+                memcpy(&curr_pid_robot_monitor2, pRcvData, byRcvDataSize);
             }
             break;
         case PID_PNT_MAIN_DATA:
@@ -140,11 +150,15 @@ int MdReceiveProc()
 
 int AnalyzeReceivedData(const std::vector<uint8_t>& buffer) { 
     if(!g_node_ptr) return 0;
+
     static uint32_t rcv_step = 0, byPacketNum = 0;
     static uint8_t byChkSum = 0;
     static uint16_t byMaxDataNum = 0, byDataNum = 0;
-    for (uint8_t data : buffer) {
-        switch(rcv_step) {
+    
+    for (uint8_t data : buffer)
+    {
+        switch(rcv_step)
+        {
             case 0:
                 if(data == g_node_ptr->robotParamData.nIDPC) {
                     byPacketNum = 0; byChkSum = data; serial_comm_rcv_buff[byPacketNum++] = data; rcv_step++;
